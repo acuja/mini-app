@@ -38,7 +38,7 @@ def convert_to_crc(amount, currency):
         response = requests.get(url)
         data = response.json()
         rate = data["rates"].get("CRC", 1)
-        return amount * rate
+        return round(amount * rate, 2)  # Format to 2 decimal places
     except:
         return amount
 
@@ -68,13 +68,14 @@ st.header("View and Export Data")
 df = pd.read_sql_query("SELECT * FROM expenses", conn)
 
 if not df.empty:
+    df['amount_crc'] = df['amount_crc'].map("{:,.2f}".format)  # Format CRC amount
     st.dataframe(df)
     st.download_button("Download CSV", df.to_csv(index=False), file_name="expenses.csv")
 
 st.header("Dashboard")
 if not df.empty:
-    income = df[df['type'] == "Income"]['amount_crc'].sum()
-    expense = df[df['type'] == "Expense"]['amount_crc'].sum()
+    income = df[df['type'] == "Income"]['amount_crc'].astype(float).sum()
+    expense = df[df['type'] == "Expense"]['amount_crc'].astype(float).sum()
     net = income - expense
 
     st.metric("Total Income (CRC)", f"{income:,.2f} CRC")
