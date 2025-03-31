@@ -68,14 +68,18 @@ st.header("View and Export Data")
 df = pd.read_sql_query("SELECT * FROM expenses", conn)
 
 if not df.empty:
-    df['amount_crc'] = df['amount_crc'].map("{:,.2f}".format)  # Format CRC amount
+    # Format the amount_crc column for display purposes only
+    df['amount_crc'] = df['amount_crc'].map("{:,.2f}".format)
     st.dataframe(df)
     st.download_button("Download CSV", df.to_csv(index=False), file_name="expenses.csv")
 
 st.header("Dashboard")
 if not df.empty:
-    income = df[df['type'] == "Income"]['amount_crc'].astype(float).sum()
-    expense = df[df['type'] == "Expense"]['amount_crc'].astype(float).sum()
+    # Convert amount_crc column to numeric for calculations
+    df['amount_crc'] = pd.to_numeric(df['amount_crc'].str.replace(',', ''), errors='coerce')
+
+    income = df[df['type'] == "Income"]['amount_crc'].sum()
+    expense = df[df['type'] == "Expense"]['amount_crc'].sum()
     net = income - expense
 
     st.metric("Total Income (CRC)", f"{income:,.2f} CRC")
